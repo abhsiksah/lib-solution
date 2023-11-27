@@ -72,6 +72,7 @@ async function SignupTrigger(dataToSend) {
 
 const Login = () => {
   const [method, setMethod] = React.useState("login");
+
   const handleMethodChange = React.useCallback((event, value) => {
     setMethod(value);
   }, []);
@@ -133,7 +134,7 @@ const Login = () => {
       const validateUser = await SignupTrigger(dataToSend);
 
       if (validateUser.message !== "User created successfully") {
-        alert("user does not exist");
+        alert("user already exist");
       } else {
         setMethod("login");
         alert("User Added !!");

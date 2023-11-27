@@ -1,4 +1,5 @@
-import { Typography } from "@mui/material";
+import VerifiedIcon from "@mui/icons-material/Verified";
+import { Switch, Typography } from "@mui/material";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import LinearProgress from "@mui/material/LinearProgress";
@@ -18,6 +19,9 @@ const Home = () => {
   const [Addopen, setAddOpen] = React.useState(false);
 
   const [openLoadRcd, setOpenLoadRcd] = React.useState(false);
+  const [handletoggle, setHandletoggle] = React.useState(false);
+  const [handletogglefinal, setHandletogglefinal] =
+    React.useState(handletoggle);
 
   const [loader, setLoader] = React.useState(false);
   const [loanrcdBooks, setLoanrcdBooks] = useState([]);
@@ -122,6 +126,36 @@ const Home = () => {
             body: JSON.stringify(values),
           }
         );
+
+        if (handletoggle !== handletogglefinal) {
+          if (handletogglefinal) {
+            const addLoanrecords = {
+              userid: appState.userdata._id,
+              bookid: getSingleBook.bookId,
+            };
+            const url = `http://localhost:3000/loan-records`;
+            await fetch(url, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(addLoanrecords),
+            });
+          } else {
+            const deleteLoanRecords = {
+              bookid: getSingleBook.bookId,
+            };
+            const url = `http://localhost:3000/loan-records`;
+            await fetch(url, {
+              method: "DELETE",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(deleteLoanRecords),
+            });
+          }
+        }
+
         setBookList([]);
         await handleFetchBooks();
 
@@ -137,6 +171,7 @@ const Home = () => {
         });
         setLoader(false);
         handleClose();
+        console.log(values, "editing");
       } catch (error) {
         console.log(error, "testing");
         alert("we are facing some problem in editing plz try again.....");
@@ -306,7 +341,13 @@ const Home = () => {
               {[...bookList].reverse().map((item) => (
                 <>
                   <div className="single-book">
-                    <span>
+                    {item.isIssued && (
+                      <div className="issued-class">
+                        <VerifiedIcon />
+                        <span style={{ color: "black" }}>Issued</span>
+                      </div>
+                    )}
+                    <span style={{ marginTop: "40px" }}>
                       <span className="title-card">Title:</span> {item.title}
                     </span>
                     <span>
@@ -342,7 +383,8 @@ const Home = () => {
                               setLoader(true);
                               let repsonse = await fetch(url);
                               const parsedJsonSearch = await repsonse.json();
-
+                              setHandletoggle(parsedJsonSearch.isIssued);
+                              setHandletogglefinal(parsedJsonSearch.isIssued);
                               setGetSingleBook({
                                 updatedBook: parsedJsonSearch,
                                 bookId: item.id,
@@ -477,6 +519,18 @@ const Home = () => {
                     type="text"
                     value={formik.values.publisher}
                   />
+
+                  <Stack direction="row" spacing={2}>
+                    <Switch
+                      size={"small"}
+                      checked={handletogglefinal}
+                      onChange={() => setHandletogglefinal(!handletogglefinal)}
+                      inputProps={{ "aria-label": "controlled" }}
+                    />
+                    <span>
+                      {formik.values.isIssued ? "Issued" : "Not Issued"}
+                    </span>
+                  </Stack>
                 </Stack>
                 <div style={{ display: "flex", gap: "20px", width: "600px" }}>
                   <Button
